@@ -11,6 +11,7 @@ if __name__ == '__main__':
     social_dict = {}
     for soc in social_values:
         s = Society(num_agents, num_neighbours, social_value=soc, learning_rate=learning_rate)
+        s.draw()
         average_value = 0
         print('Social value currently operating:' + str(soc))
         for i in range(10):

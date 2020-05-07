@@ -3,7 +3,7 @@ import random
 class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
-    def __init__(self, actions, exploration=0.1, social_value=0.1):
+    def __init__(self, actions, exploration=0.1, social_value=0.1, location=(0, 0)):
         self.neighbours = []
         self.actions = actions
         # currently selected choice is initialised randomly to start
@@ -13,6 +13,7 @@ class Agent:
         self.exploration_rate = exploration
         self.social_value = social_value
         self.played = False
+        self.location = location
 
         # current opponent of agent
         self.opponent = None
