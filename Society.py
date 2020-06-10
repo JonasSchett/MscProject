@@ -1,15 +1,11 @@
 import random
-import arcade
 import math
 from Agent import Agent
-
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 600
 
 class Society:
     """Society class hosting number of agents with set number of neighbours"""
 
-    def __init__(self, num_agents=500, num_neighbours=20, social_value=0.1, learning_rate=0.1):
+    def __init__(self, num_agents=500, num_neighbours=20, social_value=0.1, learning_rate=0.1, width = 600, height = 600):
         self.agents = []
         self.lr = learning_rate
         # actions for prisoners dilemma
@@ -18,13 +14,13 @@ class Society:
         grid_size = int(math.ceil((1.0 * num_agents) ** 0.5))
         grid_step = 20
         size = grid_size * grid_step
-        offset_x = SCREEN_WIDTH / 2 - size/2
-        offset_y = SCREEN_HEIGHT / 2 - size/2
+        offset_x = width / 2 - size/2
+        offset_y = height / 2 - size/2
 
         for i in range(num_agents):
             x_loc = (i % grid_size) * grid_step + offset_x
             y_loc = math.floor(1.0 * i / grid_size) * grid_step + offset_y
-            self.agents.append(Agent(actions, social_value=social_value,location=(x_loc, y_loc)))
+            self.agents.append(Agent(actions, social_value=social_value, location=(x_loc, y_loc)))
 
         # assign 20 random neighbours to agents
         for agent in self.agents:
@@ -35,25 +31,6 @@ class Society:
 
     def num_agents(self):
         return len(self.agents)
-
-    def draw(self):
-        arcade.open_window(SCREEN_WIDTH,SCREEN_HEIGHT, "Example")
-        arcade.set_background_color(arcade.color.WHITE)
-        arcade.start_render()
-        locations  = []
-        fully_drawn_agents = []
-        for agent in self.agents:
-            fully_drawn_agents.append(agent)
-            locations.append(agent.location)
-            for neighbour in agent.neighbours:
-                if neighbour not in fully_drawn_agents:
-                    arcade.draw_line(agent.location[0], agent.location[1], neighbour.location[0], neighbour.location[1],
-                                     arcade.color.DARK_CYAN, 1)
-
-
-        arcade.draw_points(locations,arcade.color.BLACK,5)
-        arcade.finish_render()
-
 
     def get_q_values(self):
         return [x.Q_values for x in self.agents]

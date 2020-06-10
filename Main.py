@@ -1,5 +1,9 @@
 import numpy as np
 from Society import Society
+from VisualisationScreen import VisualisationScreen
+
+SCREEN_WIDTH = 600
+SCREEN_HEIGHT = 600
 
 num_agents = 500
 num_neighbours = 20
@@ -10,8 +14,10 @@ if __name__ == '__main__':
     social_values = np.linspace(0, 1, 11)
     social_dict = {}
     for soc in social_values:
-        s = Society(num_agents, num_neighbours, social_value=soc, learning_rate=learning_rate)
-        s.draw()
+        s = Society(num_agents, num_neighbours, social_value=soc, learning_rate=learning_rate,
+                    width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+        #screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+        #screen.draw()
         average_value = 0
         print('Social value currently operating:' + str(soc))
         for i in range(10):
