@@ -20,7 +20,7 @@ class Society:
         for i in range(num_agents):
             x_loc = (i % grid_size) * grid_step + offset_x
             y_loc = math.floor(1.0 * i / grid_size) * grid_step + offset_y
-            self.agents.append(Agent(actions, social_value=social_value, location=(x_loc, y_loc)))
+            self.agents.append(Agent(actions, social_value=social_value, location=(x_loc, y_loc), social_step_size=0.001))
 
         # assign 20 random neighbours to agents
         for agent in self.agents:
@@ -34,6 +34,9 @@ class Society:
 
     def get_q_values(self):
         return [x.Q_values for x in self.agents]
+
+    def get_social_values(self):
+        return[x.social_value for x in self.agents]
 
     def play_game(self):
         """function to play individual games, games are not played at the same time. Agents use the last move played
@@ -62,6 +65,9 @@ class Society:
         else:
             print("Error happened in game")
 
+        agent_to_play_2.update_social_value()
+        agent_to_play_1.update_social_value()
+
     def play_all(self, iterations=1):
         """function to play a game at the same time for entire society. Agents are informed about moves of the
         neighbours that they took in the same iteration"""
@@ -87,3 +93,4 @@ class Society:
                     agent.gain_reward(5, self.lr)
                 elif agent_action == 'C':
                     agent.gain_reward(-1, self.lr)
+                agent.update_social_value()

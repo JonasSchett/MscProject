@@ -19,6 +19,7 @@ if __name__ == '__main__':
         #screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
         #screen.draw()
         average_value = 0
+        average_social = 0
         print('Social value currently operating:' + str(soc))
         for i in range(10):
             s.play_all(100)
@@ -29,11 +30,15 @@ if __name__ == '__main__':
                     coop_established += 1
                 else:
                     defect_established += 1
+            social_values = s.get_social_values()
+            for value in social_values:
+                average_social += value / len(social_values)
             # coop established
             coop = coop_established / (coop_established + defect_established)
             average_value += coop
         average_value = average_value * 1.0 / 10
-        social_dict[soc] = average_value
+        average_social = average_social * 1.0 / 10
+        social_dict[soc] = (average_value,average_social)
 
     for value in social_dict.items():
         print(value)
