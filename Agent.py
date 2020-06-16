@@ -1,9 +1,11 @@
 import random
 
+
 class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
-    def __init__(self, actions, exploration=0.1, social_value=0.1, location=(0, 0)):
+    def __init__(self, actions, exploration=0.1, social_value=0.1, location=(0, 0), social_adjustment=0.1,
+                 social_step_size=1):
         self.neighbours = []
         self.actions = actions
         # currently selected choice is initialised randomly to start
@@ -14,6 +16,8 @@ class Agent:
         self.social_value = social_value
         self.played = False
         self.location = location
+        self.social_adjustment = social_adjustment
+        self.beta = social_step_size
 
         # current opponent of agent
         self.opponent = None
@@ -24,6 +28,18 @@ class Agent:
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
+
+    def update_social_value(self):
+        """Update social value based on actions of neighbours"""
+
+        cooperating_neighbours = [x for x in self.neighbours if x.selected_choice == 'C']
+        defecting_neighbours = [x for x in self.neighbours if x.selected_choice == 'D']
+
+        cooperation_rate = (len(cooperating_neighbours) - len(defecting_neighbours)) / len(self.neighbours)
+
+        previous_part = (1 - self.social_adjustment) * self.social_value
+        new_part = self.social_adjustment * self.beta * self.social_value + cooperation_rate
+        self.social_value = previous_part + new_part
 
     # gain_reward and poll_action are closely coupled, they will be polled after one another
     # first, poll_action will yield an action and then gain_reward will get the reward
