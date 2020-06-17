@@ -4,8 +4,8 @@ import random
 class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
-    def __init__(self, actions, exploration=0.1, social_value=0.1, location=(0, 0), social_adjustment=1,
-                 social_step_size=0.1):
+    def __init__(self, actions, exploration=0.9, social_value=0.1, location=(0, 0), social_adjustment=1,
+                 social_step_size=0.1, exploration_decay=0.9999):
         self.neighbours = []
         self.actions = actions
         # currently selected choice is initialised randomly to start
@@ -13,6 +13,7 @@ class Agent:
         # q value dictionary for each move
         self.Q_values = {}
         self.exploration_rate = exploration
+        self.exploration_decay = exploration_decay
         self.social_value = social_value
         self.played = False
         self.location = location
@@ -73,12 +74,14 @@ class Agent:
         """ function to poll action of agent, agent will store action as it's last action for society to see"""
         self.played = True
         rand = random.uniform(0, 1)
+        self.exploration_rate *= self.exploration_decay
         if rand < self.exploration_rate:
-            # pick best action based on q values
-            self.selected_choice = max(self.Q_values, key=self.Q_values.get)
-        else:
             # explore random move
             self.selected_choice = random.choice(self.actions)
+        else:
+            # pick best action based on q values
+            self.selected_choice = max(self.Q_values, key=self.Q_values.get)
+
         return self.selected_choice
 
     def set_opponent(self, opponent):

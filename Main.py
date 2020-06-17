@@ -1,6 +1,7 @@
 import numpy as np
 from Society import Society
 from VisualisationScreen import VisualisationScreen
+import time
 
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 600
@@ -9,7 +10,8 @@ num_agents = 500
 num_neighbours = 20
 learning_rate = 0.1
 
-if __name__ == '__main__':
+
+def first_experiment():
     # social values for an ireative run for values ranging from 0 to 1
     social_values = np.linspace(0, 1, 11)
     social_dict = {}
@@ -38,7 +40,20 @@ if __name__ == '__main__':
             average_value += coop
         average_value = average_value * 1.0 / 10
         average_social = average_social * 1.0 / 10
-        social_dict[soc] = (average_value,average_social)
+        social_dict[soc] = (average_value, average_social)
 
     for value in social_dict.items():
         print(value)
+
+
+def second_experiment():
+    # social values for an ireative run for values ranging from 0 to 1
+
+    s = Society(num_agents, num_neighbours, 0.7, learning_rate=learning_rate,
+                width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+
+    screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title="Experiment 2", tick=0.05)
+
+
+if __name__ == '__main__':
+    second_experiment()

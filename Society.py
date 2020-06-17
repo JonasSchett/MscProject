@@ -93,4 +93,4 @@ class Society:
                     agent.gain_reward(5, self.lr)
                 elif agent_action == 'C':
                     agent.gain_reward(-1, self.lr)
-                agent.update_social_value()
+                #agent.update_social_value()
