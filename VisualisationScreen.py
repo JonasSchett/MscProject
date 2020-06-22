@@ -34,15 +34,25 @@ class VisualisationScreen(arcade.Window):
         arcade.finish_render()
 
     def on_draw(self):
+
         arcade.start_render()
-        locations = []
+
+        fully_drawn_agents = []
+        for agent in self.society.agents:
+            fully_drawn_agents.append(agent)
+            for neighbour in agent.neighbours:
+                if neighbour not in fully_drawn_agents:
+                    arcade.draw_line(agent.location[0], agent.location[1], neighbour.location[0], neighbour.location[1],
+                                     arcade.color.DARK_CYAN, 1)
+
         defecting_agent_locations = [x.location for x in self.society.agents if x.selected_choice == 'D']
         cooperating_agent_locations = [x.location for x in self.society.agents if x.selected_choice == 'C']
 
-        locations = [x.location for x in self.society.agents]
 
         arcade.draw_points(defecting_agent_locations, arcade.color.RED, 5)
         arcade.draw_points(cooperating_agent_locations, arcade.color.GREEN, 5)
+
+
 
     def on_update(self, delta_time: float):
         self.time_elapsed += delta_time
@@ -50,7 +60,7 @@ class VisualisationScreen(arcade.Window):
         if self.time_elapsed > self.tick:
             self.time_elapsed = 0
             if self.society is not None:
-                self.society.play_all(1)
+                self.society.play_all(100)
 
         if self.print_time_elapsed > self.print_tick:
             self.print_time_elapsed = 0

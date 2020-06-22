@@ -22,15 +22,39 @@ class Society:
             y_loc = math.floor(1.0 * i / grid_size) * grid_step + offset_y
             self.agents.append(Agent(actions, social_value=social_value, location=(x_loc, y_loc), social_step_size=0.001))
 
-        # assign 20 random neighbours to agents
-        for agent in self.agents:
-            agents_without_current = list(self.agents)
-            agents_without_current.remove(agent)
-            random_agents = random.choices(agents_without_current, k=num_neighbours)
-            agent.set_neighbours(random_agents)
+        # assign neighbours to agent
+        self.setup_neighbours_nearest(num_neighbours)
 
     def num_agents(self):
         return len(self.agents)
+
+    def setup_neighbours_random(self, k):
+        for agent in self.agents:
+            agents_without_current = list(self.agents)
+            agents_without_current.remove(agent)
+            random_agents = random.choices(agents_without_current, k=k)
+            agent.set_neighbours(random_agents)
+
+    def setup_neighbours_nearest(self, k):
+        """sets up the network in a way that every agent is connected to the k nearest other agents"""
+        for agent in self.agents:
+            agents_without_current = list(self.agents)
+            agents_without_current.remove(agent)
+            neighbours = []
+            for i in range(k):
+                closest_agent = None
+                min_distance: int = 10000
+                for neighbour in agents_without_current:
+                    if not neighbour in neighbours:
+                        distance = ((neighbour.location[0] - agent.location[0])**2 +
+                                    (neighbour.location[1] - agent.location[1])**2)**0.5
+                        if distance < min_distance:
+                            min_distance = distance
+                            closest_agent = neighbour
+                if closest_agent:
+                    neighbours.append( closest_agent)
+            agent.set_neighbours(neighbours)
+        pass
 
     def get_q_values(self):
         return [x.Q_values for x in self.agents]

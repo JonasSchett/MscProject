@@ -5,7 +5,7 @@ class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
     def __init__(self, actions, exploration=0.9, social_value=0.1, location=(0, 0), social_adjustment=1,
-                 social_step_size=0.1, exploration_decay=0.9999):
+                 social_step_size=0.1, exploration_decay=0.99):
         self.neighbours = []
         self.actions = actions
         # currently selected choice is initialised randomly to start
