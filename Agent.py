@@ -1,34 +1,42 @@
 import random
+from math import tanh
 
 
 class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
-    def __init__(self, actions, exploration=0.9, social_value=0.1, location=(0, 0), social_adjustment=1,
-                 social_step_size=0.1, exploration_decay=0.99):
+    def __init__(self, sim_data, location=(0, 0), social_value=0.1):
         self.neighbours = []
-        self.actions = actions
+        self.actions = sim_data["actions"]
         # currently selected choice is initialised randomly to start
         self.selected_choice = random.choice(self.actions)
         # q value dictionary for each move
         self.Q_values = {}
-        self.exploration_rate = exploration
-        self.exploration_decay = exploration_decay
+        self.exploration_rate = sim_data["exploration_rate"]
+        self.exploration_decay = sim_data["exploration_decay"]
+        self.exploration_update = sim_data["exploration_update"]
         self.social_value = social_value
         self.played = False
         self.location = location
-        self.social_adjustment = social_adjustment
-        self.beta = social_step_size
+        self.social_adjustment = sim_data["social_adjustment"]
+        self.beta = sim_data["social_step_size"]
+
 
         # current opponent of agent
         self.opponent = None
 
         # q values are initialised to 0
         for a in self.actions:
-            self.Q_values[a] = 0
+            self.Q_values[a] = 0.0
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
+
+    def add_neighbours(self, neighbours):
+        self.neighbours = self.neighbours + neighbours
+
+    def add_neighbour(self, neighbour):
+        self.neighbours.append(neighbour)
 
     def update_social_value(self):
         """Update social value based on actions of neighbours"""
@@ -41,9 +49,19 @@ class Agent:
 
         # social adjustment has to be very low
         previous_part = (1 - self.social_adjustment) * self.social_value
+
         # social value is updated with cooperation rate
         new_part = self.social_adjustment * (self.social_value + self.beta * cooperation_rate)
-        self.social_value = previous_part + new_part
+
+        update_value = previous_part + new_part
+
+        # cap update value between 0 and 1
+        if update_value < 0:
+            update_value = 0
+        if update_value > 1:
+            update_value = 1
+
+        self.social_value = update_value
 
     # gain_reward and poll_action are closely coupled, they will be polled after one another
     # first, poll_action will yield an action and then gain_reward will get the reward
@@ -74,7 +92,8 @@ class Agent:
         """ function to poll action of agent, agent will store action as it's last action for society to see"""
         self.played = True
         rand = random.uniform(0, 1)
-        self.exploration_rate *= self.exploration_decay
+        if self.exploration_update:
+            self.exploration_rate *= self.exploration_decay
         if rand < self.exploration_rate:
             # explore random move
             self.selected_choice = random.choice(self.actions)

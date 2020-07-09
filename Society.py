@@ -4,36 +4,89 @@ from Agent import Agent
 
 class Society:
     """Society class hosting number of agents with set number of neighbours"""
-
-    def __init__(self, num_agents=500, num_neighbours=20, social_value=0.1, learning_rate=0.1, width = 600, height = 600):
+    def __init__(self, social_value, sim_data):
+        self.sim_data = sim_data
         self.agents = []
-        self.lr = learning_rate
+        self.lr = sim_data["learning_rate"]
+        self.num_agents = sim_data["num_agents"]
+        self.update_social_values = sim_data["update_social_values"]
+
         # actions for prisoners dilemma
-        actions = ['C', 'D']
+        self.actions = sim_data["actions"]
+        self.social_value = social_value
+        self.grid_size = int(math.ceil((1.0 * self.num_agents) ** 0.5))
+        self.grid_step = 20
+        size = self.grid_size * self.grid_step
+        self.width = sim_data["width"]
+        self.height = sim_data["height"]
+        self.offset_x = self.width / 2 - size/2
+        self.offset_y = self.height / 2 - size/2
 
-        grid_size = int(math.ceil((1.0 * num_agents) ** 0.5))
-        grid_step = 20
-        size = grid_size * grid_step
-        offset_x = width / 2 - size/2
-        offset_y = height / 2 - size/2
+        if sim_data['grid_setup']:
+            self.setup_agents_grid(sim_data["grid_size"])
+        else:
+            self.setup_neighbours_random(sim_data["num_neighbours"])
 
-        for i in range(num_agents):
-            x_loc = (i % grid_size) * grid_step + offset_x
-            y_loc = math.floor(1.0 * i / grid_size) * grid_step + offset_y
-            self.agents.append(Agent(actions, social_value=social_value, location=(x_loc, y_loc), social_step_size=0.001))
+    def setup_agents_grid(self, square):
+        self.grid_step = 20
+        size = square * self.grid_step
+        self.offset_x = self.width / 2 - size / 2
+        self.offset_y = self.height / 2 - size / 2
 
-        # assign neighbours to agent
-        self.setup_neighbours_nearest(num_neighbours)
+        self.agents = []
+        for y in range(square):
+            for x in range(square):
+                self.agents.append(Agent(self.sim_data,(self.grid_step *x + self.offset_x, self.grid_step*y+ self.offset_y),self.social_value))
+
+        for y in range(square):
+            for x in range(square):
+                agent = self.agents[y * square + x]
+                neighbour1 = self.agents[(y+1)*square + x] if y < square - 1 else None
+                neighbour2 = self.agents[y*square + (x+1)] if x < square - 1 else None
+                if neighbour1 is not None:
+                    self.set_neighbours(agent, neighbour1)
+                if neighbour2 is not None:
+                    self.set_neighbours(agent, neighbour2)
+
+    @staticmethod
+    def set_neighbours(agent1: Agent, agent2: Agent):
+        agent1.add_neighbour(agent2)
+        agent2.add_neighbour(agent1)
 
     def num_agents(self):
         return len(self.agents)
 
-    def setup_neighbours_random(self, k):
+    def setup_neighbours_random(self, num_neighbours):
+        self.agents = []
+        for i in range(self.num_agents):
+            x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
+            y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
+            self.agents.append(
+                Agent(self.sim_data, (x_loc, y_loc), self.social_value))
+
         for agent in self.agents:
-            agents_without_current = list(self.agents)
-            agents_without_current.remove(agent)
-            random_agents = random.choices(agents_without_current, k=k)
+            # create new neighbours for agent, need to ensure that the neighbours are not added twice
+            agents_without_current = [x for x in self.agents if x is not agent]
+
+            random_agents = random.choices(agents_without_current, k=num_neighbours)
             agent.set_neighbours(random_agents)
+
+    def setup_neighbours_random_no_double(self, k):
+        self.agents = []
+        for i in range(self.num_agents):
+            x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
+            y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
+            self.agents.append(Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc), social_step_size=0.001))
+
+        for agent in self.agents:
+            # create new neighbours for agent, need to ensure that the neighbours are not added twice
+            agents_without_current = [x for x in self.agents if x not in agent.neighbours]
+            agents_without_current.remove(agent)
+
+            random_agents = random.choices(agents_without_current, k=k-len(agent.neighbours))
+            agent.set_neighbours(random_agents)
+            for neighbour in random_agents:
+                neighbour.add_neighbour(agent)
 
     def setup_neighbours_nearest(self, k):
         """sets up the network in a way that every agent is connected to the k nearest other agents"""
@@ -106,15 +159,17 @@ class Society:
                     opponent.poll_action()
 
             for agent in self.agents:
-                agent.reset_played()
-                agent_action = agent.selected_choice
-                opponent_action = agent.opponent.selected_choice
-                if agent_action == opponent_action == 'C':
-                    agent.gain_reward(3, self.lr)
-                elif agent_action == opponent_action:
-                    agent.gain_reward(1, self.lr)
-                elif agent_action == 'D':
-                    agent.gain_reward(5, self.lr)
-                elif agent_action == 'C':
-                    agent.gain_reward(-1, self.lr)
-                #agent.update_social_value()
+                if agent.opponent is not None:
+                    agent.reset_played()
+                    agent_action = agent.selected_choice
+                    opponent_action = agent.opponent.selected_choice
+                    if agent_action == opponent_action == 'C':
+                        agent.gain_reward(3, self.lr)
+                    elif agent_action == opponent_action:
+                        agent.gain_reward(1, self.lr)
+                    elif agent_action == 'D':
+                        agent.gain_reward(5, self.lr)
+                    elif agent_action == 'C':
+                        agent.gain_reward(-1, self.lr)
+                    if self.update_social_values:
+                        agent.update_social_value()
