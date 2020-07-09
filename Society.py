@@ -4,7 +4,7 @@ from Agent import Agent
 
 class Society:
     """Society class hosting number of agents with set number of neighbours"""
-    def __init__(self, social_value, sim_data):
+    def __init__(self, sim_data):
         self.sim_data = sim_data
         self.agents = []
         self.lr = sim_data["learning_rate"]
@@ -13,7 +13,7 @@ class Society:
 
         # actions for prisoners dilemma
         self.actions = sim_data["actions"]
-        self.social_value = social_value
+        self.social_value = sim_data["initial_social_value"]
         self.grid_size = int(math.ceil((1.0 * self.num_agents) ** 0.5))
         self.grid_step = 20
         size = self.grid_size * self.grid_step

@@ -26,25 +26,8 @@ simulation_data_exp1 = {
     "exploration_update": False,
     "social_adjustment": 1,
     "social_step_size": 0.1,
+    "initial_social_value": 0.7,
 }
-
-simulation_data_exp2 = {
-    "width": SCREEN_WIDTH,
-    "height": SCREEN_HEIGHT,
-    "num_agents": num_agents,
-    "learning_rate": learning_rate,
-    "num_neighbours": num_neighbours,
-    "update_social_values": True,
-    "actions": ['C', 'D'],
-    "grid_size": 30,
-    "grid_setup": True,
-    "exploration_rate": 0.9,
-    "exploration_decay": 0.99,
-    "exploration_update": True,
-    "social_adjustment": 0.01,
-    "social_step_size": 1,
-}
-
 
 def first_experiment(games_per_iter, num_iter, exploration_update):
     # social values for an ireative run for values ranging from 0 to 1
@@ -52,7 +35,8 @@ def first_experiment(games_per_iter, num_iter, exploration_update):
     social_values = np.linspace(0, 1, 11)
     social_dict = {}
     for soc in social_values:
-        s = Society(soc, simulation_data_exp1)
+        simulation_data_exp1["initial_social_value"] = soc
+        s = Society(simulation_data_exp1)
         average_value = 0
         average_social = 0
         print('Social value currently operating:' + str(soc))
@@ -98,8 +82,27 @@ def first_experiment(games_per_iter, num_iter, exploration_update):
     plt.show()
 
 
+simulation_data_exp2 = {
+    "width": SCREEN_WIDTH,
+    "height": SCREEN_HEIGHT,
+    "num_agents": num_agents,
+    "learning_rate": learning_rate,
+    "num_neighbours": num_neighbours,
+    "update_social_values": True,
+    "actions": ['C', 'D'],
+    "grid_size": 30,
+    "grid_setup": True,
+    "exploration_rate": 0.9,
+    "exploration_decay": 0.99,
+    "exploration_update": True,
+    "social_adjustment": 0.01,
+    "social_step_size": 1,
+    "initial_social_value": 0.7,
+}
+
+
 def second_experiment():
-    s = Society(0.7, simulation_data_exp2)
+    s = Society(simulation_data_exp2)
     screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title="Experiment 2", tick=0.1)
 
 
