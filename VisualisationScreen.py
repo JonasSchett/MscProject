@@ -62,7 +62,7 @@ class VisualisationScreen(arcade.Window):
             coop_rate = coop_established / (coop_established + defect_established)
 
             social_value_average /= len(self.society.agents)
-            print((social_value_average, defecting, cooperating, coop_rate))
+            print(f'Social value average: {social_value_average:.2f} Agents defecting: {defecting} Agents cooperating: {cooperating} Cooperation Rate: {coop_rate:.2f}')
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         pass
