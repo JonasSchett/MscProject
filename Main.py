@@ -21,6 +21,7 @@ simulation_data_exp1 = {
     "actions": ['C', 'D'],
     "grid_size": 20,
     "grid_setup": False,
+    "scale_free_setup": True,
     "exploration_rate": 0.9,
     "exploration_decay": 0.99,
     "exploration_update": False,
@@ -90,8 +91,9 @@ simulation_data_exp2 = {
     "num_neighbours": num_neighbours,
     "update_social_values": True,
     "actions": ['C', 'D'],
-    "grid_size": 30,
+    "grid_size": 20,
     "grid_setup": True,
+    "scale_free_setup": False,
     "exploration_rate": 0.9,
     "exploration_decay": 0.99,
     "exploration_update": True,
@@ -106,7 +108,31 @@ def second_experiment():
     screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title="Experiment 2", tick=0.1)
 
 
+simulation_data_exp3 = {
+    "width": SCREEN_WIDTH,
+    "height": SCREEN_HEIGHT,
+    "num_agents": num_agents,
+    "learning_rate": learning_rate,
+    "num_neighbours": num_neighbours,
+    "update_social_values": True,
+    "actions": ['C', 'D'],
+    "grid_size": 20,
+    "grid_setup": False,
+    "scale_free_setup": True,
+    "exploration_rate": 0.9,
+    "exploration_decay": 0.99,
+    "exploration_update": True,
+    "social_adjustment": 0.01,
+    "social_step_size": 1,
+    "initial_social_value": 0.7,
+    }
+
+def third_experiment():
+    s = Society(simulation_data_exp3)
+
+
 if __name__ == '__main__':
     #first_experiment(games_per_iter=100, num_iter=10, exploration_update=False)
     #first_experiment(games_per_iter=100, num_iter=10, exploration_update=True)
-    second_experiment()
+    #second_experiment()
+    third_experiment()

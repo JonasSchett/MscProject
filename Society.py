@@ -2,8 +2,10 @@ import random
 import math
 from Agent import Agent
 
+
 class Society:
     """Society class hosting number of agents with set number of neighbours"""
+
     def __init__(self, sim_data):
         self.sim_data = sim_data
         self.agents = []
@@ -19,11 +21,21 @@ class Society:
         size = self.grid_size * self.grid_step
         self.width = sim_data["width"]
         self.height = sim_data["height"]
-        self.offset_x = self.width / 2 - size/2
-        self.offset_y = self.height / 2 - size/2
+        self.offset_x = self.width / 2 - size / 2
+        self.offset_y = self.height / 2 - size / 2
 
         if sim_data['grid_setup']:
             self.setup_agents_grid(sim_data["grid_size"])
+        elif sim_data['scale_free_setup']:
+            self.setup_neighbours_ba()
+            agent_neighbour_buckets = {}
+            for agent in self.agents:
+                neighbours = len(agent.neighbours)
+                if neighbours in agent_neighbour_buckets:
+                    agent_neighbour_buckets[neighbours] += 1
+                else:
+                    agent_neighbour_buckets[neighbours] = 1
+            print(agent_neighbour_buckets)
         else:
             self.setup_neighbours_random(sim_data["num_neighbours"])
 
@@ -36,13 +48,15 @@ class Society:
         self.agents = []
         for y in range(square):
             for x in range(square):
-                self.agents.append(Agent(self.sim_data,(self.grid_step *x + self.offset_x, self.grid_step*y+ self.offset_y),self.social_value))
+                self.agents.append(
+                    Agent(self.sim_data, (self.grid_step * x + self.offset_x, self.grid_step * y + self.offset_y),
+                          self.social_value))
 
         for y in range(square):
             for x in range(square):
                 agent = self.agents[y * square + x]
-                neighbour1 = self.agents[(y+1)*square + x] if y < square - 1 else None
-                neighbour2 = self.agents[y*square + (x+1)] if x < square - 1 else None
+                neighbour1 = self.agents[(y + 1) * square + x] if y < square - 1 else None
+                neighbour2 = self.agents[y * square + (x + 1)] if x < square - 1 else None
                 if neighbour1 is not None:
                     self.set_neighbours(agent, neighbour1)
                 if neighbour2 is not None:
@@ -55,6 +69,46 @@ class Society:
 
     def num_agents(self):
         return len(self.agents)
+
+    def setup_neighbours_ba(self):
+        self.agents = []
+
+        # initiate first agent
+        for i in range(self.num_agents):
+            agent = Agent(self.sim_data, social_value=self.social_value)
+
+            # add neighbours from already existing agents:
+            if len(self.agents) > 0:
+                # create grade
+                agents_roulette_wheel = []
+                sum_of_grades: float = 0
+                for a in self.agents:
+                    sum_of_grades += len(a.neighbours)
+
+                for a in self.agents:
+                    agent_grade: float = len(a.neighbours)
+                    agent_probability: float = agent_grade / sum_of_grades if sum_of_grades is not 0 else 1
+                    agents_roulette_wheel.append((agent_probability, a))
+                agents_roulette_wheel.sort(reverse=True, key=lambda x: x[0])
+
+                # create random number and select agent:
+                random_challenge = 0
+                # random number for selecting agent
+                number = random.uniform(0, 1)
+                for (p, a) in agents_roulette_wheel:
+                    # need to select an agent where the random number is within its bracket
+                    # the bracket is defined by the random challenge (lower bound)
+                    # and the random challenge + its probability
+                    if random_challenge < number < p + random_challenge:
+                        #add agent connection
+                        a.add_neighbour(agent)
+                        agent.add_neighbour(a)
+                        break
+                    random_challenge += p
+
+                # add neighbours depending on grade of neighbours
+            # add new agents to list
+            self.agents.append(agent)
 
     def setup_neighbours_random(self, num_neighbours):
         self.agents = []
@@ -76,14 +130,15 @@ class Society:
         for i in range(self.num_agents):
             x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
             y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
-            self.agents.append(Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc), social_step_size=0.001))
+            self.agents.append(
+                Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc), social_step_size=0.001))
 
         for agent in self.agents:
             # create new neighbours for agent, need to ensure that the neighbours are not added twice
             agents_without_current = [x for x in self.agents if x not in agent.neighbours]
             agents_without_current.remove(agent)
 
-            random_agents = random.choices(agents_without_current, k=k-len(agent.neighbours))
+            random_agents = random.choices(agents_without_current, k=k - len(agent.neighbours))
             agent.set_neighbours(random_agents)
             for neighbour in random_agents:
                 neighbour.add_neighbour(agent)
@@ -99,13 +154,13 @@ class Society:
                 min_distance: int = 10000
                 for neighbour in agents_without_current:
                     if not neighbour in neighbours:
-                        distance = ((neighbour.location[0] - agent.location[0])**2 +
-                                    (neighbour.location[1] - agent.location[1])**2)**0.5
+                        distance = ((neighbour.location[0] - agent.location[0]) ** 2 +
+                                    (neighbour.location[1] - agent.location[1]) ** 2) ** 0.5
                         if distance < min_distance:
                             min_distance = distance
                             closest_agent = neighbour
                 if closest_agent:
-                    neighbours.append( closest_agent)
+                    neighbours.append(closest_agent)
             agent.set_neighbours(neighbours)
         pass
 
@@ -113,7 +168,7 @@ class Society:
         return [x.Q_values for x in self.agents]
 
     def get_social_values(self):
-        return[x.social_value for x in self.agents]
+        return [x.social_value for x in self.agents]
 
     def play_game(self):
         """function to play individual games, games are not played at the same time. Agents use the last move played
