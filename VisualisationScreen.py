@@ -1,5 +1,4 @@
 import arcade
-from Society import Society
 
 
 class VisualisationScreen(arcade.Window):

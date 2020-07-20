@@ -2,10 +2,9 @@ import numpy as np
 from Society import Society
 from VisualisationScreen import VisualisationScreen
 import matplotlib.pyplot as plt
-import time
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1500
+SCREEN_HEIGHT = 1500
 
 num_agents = 500
 num_neighbours = 20
@@ -111,7 +110,7 @@ def second_experiment():
 simulation_data_exp3 = {
     "width": SCREEN_WIDTH,
     "height": SCREEN_HEIGHT,
-    "num_agents": num_agents,
+    "num_agents": 500,
     "learning_rate": learning_rate,
     "num_neighbours": num_neighbours,
     "update_social_values": True,
@@ -127,8 +126,10 @@ simulation_data_exp3 = {
     "initial_social_value": 0.7,
     }
 
+
 def third_experiment():
     s = Society(simulation_data_exp3)
+    screen = VisualisationScreen(s, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title="Experiment 2", tick=0.1)
 
 
 if __name__ == '__main__':

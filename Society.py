@@ -1,6 +1,31 @@
 import random
 import math
+import numpy as np
 from Agent import Agent
+
+
+def scale_free_neighbour_location_setup(agent, radius, base_orientation):
+    theta_range = np.arange(base_orientation, base_orientation+ 2 * math.pi, 2 * math.pi / len(agent.neighbours))
+    # initially, we position the agent
+    unpositioned_neighbours = [x for x in agent.neighbours if x.location[0] is 0 and x.location[1] is 0]
+    if len(unpositioned_neighbours) is 0:
+        return
+
+    thetas = np.zeros(len(unpositioned_neighbours))
+    calculation_radii = np.zeros(len(unpositioned_neighbours))
+    for i in range(len(unpositioned_neighbours)):
+        # theta is the interpolation between 0 and 2*pi
+        thetas[i] = theta_range[i]
+        calculation_radius = radius * len(unpositioned_neighbours[i].neighbours)/len(agent.neighbours)
+        calculation_radii[i] = calculation_radius
+        x = agent.location[0] + calculation_radius * math.sin(thetas[i])
+        y = agent.location[1] + calculation_radius * math.cos(thetas[i])
+        neighbour: Agent = unpositioned_neighbours[i]
+        neighbour.location = (x, y)
+
+    for i in range(len(unpositioned_neighbours)):
+        scale_free_neighbour_location_setup(unpositioned_neighbours[i], calculation_radii[i]*0.7, thetas[i])
+
 
 
 class Society:
@@ -35,7 +60,10 @@ class Society:
                     agent_neighbour_buckets[neighbours] += 1
                 else:
                     agent_neighbour_buckets[neighbours] = 1
-            print(agent_neighbour_buckets)
+            for i in range(max(agent_neighbour_buckets.keys()) + 1):
+                pass
+                # num_agents = (agent_neighbour_buckets[i] if i in agent_neighbour_buckets else 0)
+                # print("neighbours: " + str(i) + " agents: " + str(num_agents))
         else:
             self.setup_neighbours_random(sim_data["num_neighbours"])
 
@@ -99,16 +127,34 @@ class Society:
                     # need to select an agent where the random number is within its bracket
                     # the bracket is defined by the random challenge (lower bound)
                     # and the random challenge + its probability
-                    if random_challenge < number < p + random_challenge:
-                        #add agent connection
+                    random_challenge += p
+                    if number < random_challenge:
+                        # add agent connection
                         a.add_neighbour(agent)
                         agent.add_neighbour(a)
                         break
-                    random_challenge += p
-
-                # add neighbours depending on grade of neighbours
             # add new agents to list
             self.agents.append(agent)
+        # after connecting the agents we need to place them onto the grid in a nice way to visualise the scale free network
+        # sort agents by number of neighbours they have
+        self.agents.sort(key=lambda x: len(x.neighbours), reverse=True)
+        # take first agent and set it to be the centre:
+        core: Agent = self.agents[0]
+        core.location = (self.sim_data['width'] / 2, self.sim_data['height'] / 2)
+
+        scale_free_neighbour_location_setup(core, self.sim_data['width']/2, 0)
+
+        # average overall position of all agents to centre of screen
+        average_pos = (0,0)
+        for agent in self.agents:
+            average_pos = np.add(average_pos, agent.location)
+        average_pos = np.divide(average_pos, len(self.agents))
+        centre = (self.sim_data['width']/2, self.sim_data['height']/2)
+        offset = np.subtract(centre,average_pos)
+        # adjust all agents' positions
+        for agent in self.agents:
+            agent.location = np.add(agent.location, offset)
+
 
     def setup_neighbours_random(self, num_neighbours):
         self.agents = []

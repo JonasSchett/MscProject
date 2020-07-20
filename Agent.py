@@ -1,5 +1,4 @@
 import random
-from math import tanh
 
 
 class Agent:
