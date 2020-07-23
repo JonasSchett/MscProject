@@ -24,7 +24,7 @@ def scale_free_neighbour_location_setup(agent, radius, base_orientation):
         neighbour.location = (x, y)
 
     for i in range(len(unpositioned_neighbours)):
-        scale_free_neighbour_location_setup(unpositioned_neighbours[i], calculation_radii[i]*0.7, thetas[i])
+        scale_free_neighbour_location_setup(unpositioned_neighbours[i], calculation_radii[i]*0.8, thetas[i])
 
 
 
@@ -142,7 +142,7 @@ class Society:
         core: Agent = self.agents[0]
         core.location = (self.sim_data['width'] / 2, self.sim_data['height'] / 2)
 
-        scale_free_neighbour_location_setup(core, self.sim_data['width']/2, 0)
+        scale_free_neighbour_location_setup(core, self.sim_data['width']/1.7, 0)
 
         # average overall position of all agents to centre of screen
         average_pos = (0,0)
@@ -154,7 +154,6 @@ class Society:
         # adjust all agents' positions
         for agent in self.agents:
             agent.location = np.add(agent.location, offset)
-
 
     def setup_neighbours_random(self, num_neighbours):
         self.agents = []
@@ -176,8 +175,7 @@ class Society:
         for i in range(self.num_agents):
             x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
             y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
-            self.agents.append(
-                Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc), social_step_size=0.001))
+            self.agents.append(Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc)))
 
         for agent in self.agents:
             # create new neighbours for agent, need to ensure that the neighbours are not added twice
@@ -242,14 +240,16 @@ class Society:
             agent_to_play_1.gain_reward(-1, self.lr)
         else:
             print("Error happened in game")
+        if self.sim_data['update_social_values']:
+            agent_to_play_2.update_social_value()
+            agent_to_play_1.update_social_value()
 
-        agent_to_play_2.update_social_value()
-        agent_to_play_1.update_social_value()
-
-    def play_all(self, iterations=1):
+    def play_all(self, iterations=1, verbose=False):
         """function to play a game at the same time for entire society. Agents are informed about moves of the
         neighbours that they took in the same iteration"""
         for i in range(iterations):
+            if verbose and (i+1) % 1000 is 0:
+                print('iteration: '+str(i))
             for agent in self.agents:
                 possible_opponents = [x for x in agent.neighbours if not x.played]
                 if len(possible_opponents) is not 0:

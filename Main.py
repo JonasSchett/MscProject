@@ -20,7 +20,7 @@ simulation_data_exp1 = {
     "actions": ['C', 'D'],
     "grid_size": 20,
     "grid_setup": False,
-    "scale_free_setup": True,
+    "scale_free_setup": False,
     "exploration_rate": 0.9,
     "exploration_decay": 0.99,
     "exploration_update": False,
@@ -36,11 +36,11 @@ def first_experiment(games_per_iter, num_iter, exploration_update):
     social_dict = {}
     for soc in social_values:
         simulation_data_exp1["initial_social_value"] = soc
-        s = Society(simulation_data_exp1)
         average_value = 0
         average_social = 0
         print('Social value currently operating:' + str(soc))
         for i in range(num_iter):
+            s = Society(simulation_data_exp1)
             s.play_all(games_per_iter)
             defect_established = 0
             coop_established = 0
@@ -133,7 +133,7 @@ def third_experiment():
 
 
 if __name__ == '__main__':
-    #first_experiment(games_per_iter=100, num_iter=10, exploration_update=False)
+    first_experiment(games_per_iter=100, num_iter=10, exploration_update=False)
     #first_experiment(games_per_iter=100, num_iter=10, exploration_update=True)
     #second_experiment()
-    third_experiment()
+    #third_experiment()
