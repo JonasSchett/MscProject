@@ -1,20 +1,25 @@
 import random
+import numpy as np
 
 
 class Agent:
     """Agent class capable of playing a prisoners dilemma game with opponents"""
 
-    def __init__(self, sim_data, location=(0, 0), social_value=0.1):
+    def __init__(self, sim_data, location=(0, 0)):
         self.neighbours = []
         self.actions = sim_data["actions"]
         # currently selected choice is initialised randomly to start
         self.selected_choice = random.choice(self.actions)
         # q value dictionary for each move
         self.Q_values = {}
+
         self.exploration_rate = sim_data["exploration_rate"]
         self.exploration_decay = sim_data["exploration_decay"]
         self.exploration_update = sim_data["exploration_update"]
-        self.social_value = social_value
+
+        self.social_value = sim_data["initial_social_value"]
+        if sim_data["random_social_value"]:
+            self.social_value = np.random.normal(sim_data["initial_social_value"], sim_data["std_dev"])
         self.played = False
         self.location = location
         self.social_adjustment = sim_data["social_adjustment"]

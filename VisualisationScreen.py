@@ -40,7 +40,7 @@ class VisualisationScreen(arcade.Window):
         if self.time_elapsed > self.tick:
             self.time_elapsed = 0
             if self.society is not None:
-                self.society.play_all(10)
+                self.society.play_all(100)
 
         if self.print_time_elapsed > self.print_tick:
             self.print_time_elapsed = 0

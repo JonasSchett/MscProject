@@ -77,8 +77,7 @@ class Society:
         for y in range(square):
             for x in range(square):
                 self.agents.append(
-                    Agent(self.sim_data, (self.grid_step * x + self.offset_x, self.grid_step * y + self.offset_y),
-                          self.social_value))
+                    Agent(self.sim_data, (self.grid_step * x + self.offset_x, self.grid_step * y + self.offset_y)))
 
         for y in range(square):
             for x in range(square):
@@ -103,7 +102,7 @@ class Society:
 
         # initiate first agent
         for i in range(self.num_agents):
-            agent = Agent(self.sim_data, social_value=self.social_value)
+            agent = Agent(self.sim_data)
 
             # add neighbours from already existing agents:
             if len(self.agents) > 0:
@@ -113,26 +112,28 @@ class Society:
                 for a in self.agents:
                     sum_of_grades += len(a.neighbours)
 
-                for a in self.agents:
-                    agent_grade: float = len(a.neighbours)
-                    agent_probability: float = agent_grade / sum_of_grades if sum_of_grades is not 0 else 1
-                    agents_roulette_wheel.append((agent_probability, a))
-                agents_roulette_wheel.sort(reverse=True, key=lambda x: x[0])
+                for i in range(self.sim_data["scale_free_links"]):
+                    for a in self.agents:
+                        agent_grade: float = len(a.neighbours)
+                        agent_probability: float = agent_grade / sum_of_grades if sum_of_grades is not 0 else 1
+                        agents_roulette_wheel.append((agent_probability, a))
+                    agents_roulette_wheel.sort(reverse=True, key=lambda x: x[0])
 
-                # create random number and select agent:
-                random_challenge = 0
-                # random number for selecting agent
-                number = random.uniform(0, 1)
-                for (p, a) in agents_roulette_wheel:
-                    # need to select an agent where the random number is within its bracket
-                    # the bracket is defined by the random challenge (lower bound)
-                    # and the random challenge + its probability
-                    random_challenge += p
-                    if number < random_challenge:
-                        # add agent connection
-                        a.add_neighbour(agent)
-                        agent.add_neighbour(a)
-                        break
+                    # create random number and select agent:
+                    random_challenge = 0
+                    # random number for selecting agent
+                    number = random.uniform(0, 1)
+                    for (p, a) in agents_roulette_wheel:
+                        # need to select an agent where the random number is within its bracket
+                        # the bracket is defined by the random challenge (lower bound)
+                        # and the random challenge + its probability
+                        random_challenge += p
+                        if number < random_challenge:
+                            # add agent connection
+                            if a not in agent.neighbours:
+                                a.add_neighbour(agent)
+                                agent.add_neighbour(a)
+                                break
             # add new agents to list
             self.agents.append(agent)
         # after connecting the agents we need to place them onto the grid in a nice way to visualise the scale free network
@@ -142,7 +143,7 @@ class Society:
         core: Agent = self.agents[0]
         core.location = (self.sim_data['width'] / 2, self.sim_data['height'] / 2)
 
-        scale_free_neighbour_location_setup(core, self.sim_data['width']/1.7, 0)
+        scale_free_neighbour_location_setup(core, self.sim_data['width']/2, 0)
 
         # average overall position of all agents to centre of screen
         average_pos = (0,0)
@@ -161,7 +162,7 @@ class Society:
             x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
             y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
             self.agents.append(
-                Agent(self.sim_data, (x_loc, y_loc), self.social_value))
+                Agent(self.sim_data, (x_loc, y_loc)))
 
         for agent in self.agents:
             # create new neighbours for agent, need to ensure that the neighbours are not added twice
@@ -175,7 +176,7 @@ class Society:
         for i in range(self.num_agents):
             x_loc = (i % self.grid_size) * self.grid_step + self.offset_x
             y_loc = math.floor(1.0 * i / self.grid_size) * self.grid_step + self.offset_y
-            self.agents.append(Agent(self.actions, social_value=self.social_value, location=(x_loc, y_loc)))
+            self.agents.append(Agent(self.actions, location=(x_loc, y_loc)))
 
         for agent in self.agents:
             # create new neighbours for agent, need to ensure that the neighbours are not added twice
@@ -251,13 +252,14 @@ class Society:
             if verbose and (i+1) % 1000 is 0:
                 print('iteration: '+str(i))
             for agent in self.agents:
-                possible_opponents = [x for x in agent.neighbours if not x.played]
-                if len(possible_opponents) is not 0:
-                    opponent = random.choice(possible_opponents)
-                    agent.set_opponent(opponent)
-                    opponent.set_opponent(agent)
-                    agent.poll_action()
-                    opponent.poll_action()
+                if not agent.played:
+                    possible_opponents = [x for x in agent.neighbours if not x.played]
+                    if len(possible_opponents) is not 0:
+                        opponent = random.choice(possible_opponents)
+                        agent.set_opponent(opponent)
+                        opponent.set_opponent(agent)
+                        agent.poll_action()
+                        opponent.poll_action()
 
             for agent in self.agents:
                 if agent.opponent is not None:
