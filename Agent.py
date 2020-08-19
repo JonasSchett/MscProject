@@ -13,6 +13,7 @@ class Agent:
         # q value dictionary for each move
         self.Q_values = {}
 
+        # initialisation of variables
         self.exploration_rate = sim_data["exploration_rate"]
         self.exploration_decay = sim_data["exploration_decay"]
         self.exploration_update = sim_data["exploration_update"]
@@ -25,8 +26,7 @@ class Agent:
         self.social_adjustment = sim_data["social_adjustment"]
         self.beta = sim_data["social_step_size"]
 
-
-        # current opponent of agent
+        # current opponent of agent is set to None initially
         self.opponent = None
 
         # q values are initialised to 0
@@ -34,16 +34,15 @@ class Agent:
             self.Q_values[a] = 0.0
 
     def set_neighbours(self, neighbours):
+        """Method allowing to set the neighbours of this agent as a list directly"""
         self.neighbours = neighbours
 
-    def add_neighbours(self, neighbours):
-        self.neighbours = self.neighbours + neighbours
-
     def add_neighbour(self, neighbour):
+        """Method adding a single neighbour to the agent"""
         self.neighbours.append(neighbour)
 
     def update_social_value(self):
-        """Update social value based on actions of neighbours"""
+        """Method to update social values based on neighbours actions"""
 
         cooperating_neighbours = [x for x in self.neighbours if x.selected_choice == 'C']
         defecting_neighbours = [x for x in self.neighbours if x.selected_choice == 'D']
@@ -67,10 +66,8 @@ class Agent:
 
         self.social_value = update_value
 
-    # gain_reward and poll_action are closely coupled, they will be polled after one another
-    # first, poll_action will yield an action and then gain_reward will get the reward
-    # for that action later
     def gain_reward(self, reward, lr=0.1):
+        """Method allowing agent to gain a reward, the reward and learning rate used need to be specified externally"""
         # update q values based on the last selected_choice
         # and the reward here
 
@@ -94,17 +91,21 @@ class Agent:
 
     def poll_action(self):
         """ function to poll action of agent, agent will store action as it's last action for society to see"""
+        # This variable is to see if this agent has already played a game and is important for the society
         self.played = True
-        rand = random.uniform(0, 1)
+
+        # exploration rate is updated here
         if self.exploration_update:
             self.exploration_rate *= self.exploration_decay
+
+        # epsilon greedy action selection is employed to select action
+        rand = random.uniform(0, 1)
         if rand < self.exploration_rate:
             # explore random move
             self.selected_choice = random.choice(self.actions)
         else:
             # pick best action based on q values
             self.selected_choice = max(self.Q_values, key=self.Q_values.get)
-
         return self.selected_choice
 
     def set_opponent(self, opponent):
